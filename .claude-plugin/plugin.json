@@ -1,8 +1,0 @@
-{
-  "name": "nayan",
-  "description": "Nayan SDLC - Strategic workflow orchestrator for greenfield and brownfield software development. Provides an 8-step SDLC pipeline with specialized agents for brainstorming, PRD, architecture, planning, prototyping, coding, QA, security, and deployment.",
-  "version": "1.0.0",
-  "author": {
-    "name": "Nayan"
-  }
-}
