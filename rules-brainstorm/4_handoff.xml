@@ -1,0 +1,21 @@
+<handoff>
+  <output_file>Structured concept (greenfield) or exploration summary with proposed direction (brownfield)</output_file>
+  <next_mode>prd (greenfield) | architect | plan | prototype | code | qa (brownfield, per pipeline)</next_mode>
+  <handoff_instruction>
+    **CRITICAL:** Use new_task to hand off — do NOT use attempt_completion. attempt_completion ends the task and shows "Task Completed"; the user will not be auto-transitioned to the next mode. new_task must be called so the user is taken to the next mode automatically.
+
+    **Brainstorm does NOT create initial-prd.md** — that is PRD's job. Brainstorm outputs structured concept only.
+    **Greenfield:** When the structured concept is complete and user has approved, use new_task with mode=prd and message including:
+    - pipelineId: greenfield, CONTEXT: greenfield
+    - Structured concept or problem statement (when entry was JIRA or SOW, include the user-aligned requirements summary so prd can create initial-prd from it)
+    - Instruction to create initial-prd.md with all 15 mandatory sections per prd-template-v2 (including Domain Glossary in Appendix)
+
+    **Brownfield:** When exploration is complete and user has approved, use new_task with the appropriate mode per pipeline. **Always include in message:** pipelineId, CONTEXT (brownfield), and when the session started from JIRA or SOW include the user-aligned scope/summary (condensed scope or migration brief for architect; structured concept/requirements summary for prd) so the next mode has full context.
+    - extend → architect (condensed scope from brainstorm; architect extends architecture)
+    - migrate → architect (migration scope/brief from brainstorm; architect then prototype when UI then plan)
+    - add-feature / enhance-feature → prd (when feature is substantial, needs formal requirements/sign-off, or user provided JIRA/SOW for add/enhance; include aligned requirements summary; prd then hands off to architect) or prototype (when UI, small feature) or plan (when API-only, small feature)
+    - fix-bug → debug (when diagnose-only desired) or code (when diagnose+fix in one flow)
+    - refactor → qa
+    Include exploration summary, proposed direction, and context needed for the next mode.
+  </handoff_instruction>
+</handoff>

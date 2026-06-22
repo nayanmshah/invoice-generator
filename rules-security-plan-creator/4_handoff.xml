@@ -1,0 +1,10 @@
+<handoff>
+  <output_file>Security assessment</output_file>
+  <next_mode>deploy</next_mode>
+  <handoff_instruction>
+    When security assessment is complete and user has approved, validate deploy prerequisites (architecture.md, codebase, all sprints finished) are ready — validation before next mode loads. Then use new_task with mode=deploy and message including:
+    - Codebase location
+    - ARCHITECTURE_FILE: architecture.md
+    - Instruction to deploy (only after all sprints finished; confirm deployment target with user)
+  </handoff_instruction>
+</handoff>

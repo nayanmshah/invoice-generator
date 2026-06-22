@@ -1,0 +1,12 @@
+<handoff>
+  <description>Architect mode handoff. You produce architecture.md only. Hand off to prototype (when UI) or plan (dev-plan when API-only).</description>
+  <output_file>architecture.md</output_file>
+  <next_mode>prototype (when UI involved) or plan (when API-only, dev-plan phase)</next_mode>
+  <handoff_instruction>
+    Do NOT handoff until: (1) input was ready at start (refined-prd or condensed scope per plan-input-requirements.md), (2) all Mermaid diagrams validate (self-review doc for Mermaid syntax errors and fix any issues), (3) you have reviewed architecture.md per 3_architecture_validation.md including completeness checklist in architecture-greenfield-structure.md or architecture-brownfield-structure.md, and (4) user has explicitly approved. Mermaid syntax errors must be rectified before user approval and before handoff.
+
+    **When the solution involves UI (user-facing interfaces):** Use new_task with mode=prototype and message including: PRD_FILE or SCOPE, ARCHITECTURE_FILE, CONTEXT (greenfield|brownfield), TECH_STACK, pipelineId when known (e.g. brownfield-extend, brownfield-migrate, brownfield-add-feature — from your handoff message), instruction to create UX and UI concepts including one responsive interactive HTML prototype per persona (each persona from PRD Section 5 (greenfield) or condensed scope (brownfield) — each mimicking that persona's exact views/pages), all screens per persona, in-page feedback only, no placeholder content, fully functional responsive UI, one web responsive to all devices, integrated screens. Wireframes, interaction flows, and prototypes informed by the approved architecture and refined requirements. **When CONTEXT is brownfield and the existing app has UI:** Include instruction that prototype must analyze existing UI first per .nayan/guidance/prototype-brownfield-existing-ui.md, match existing components/styles/look-and-feel pixel by pixel, and when the app uses a design library or custom components, consider the production solution based on that only.
+
+    **When the solution is API-only or backend-only (no user-facing UI):** Use new_task with mode=plan and message including: PRD_FILE or SCOPE, ARCHITECTURE_FILE, CONTEXT, TECH_STACK, instruction to synthesize into development-plan.md using the appropriate template (see .nayan/rules-plan/ and development-plan-creation skill).
+  </handoff_instruction>
+</handoff>

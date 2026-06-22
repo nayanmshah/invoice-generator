@@ -1,0 +1,7 @@
+<handoff>
+  <output_file>Deployed app</output_file>
+  <next_mode>orchestrator</next_mode>
+  <handoff_instruction>
+    When deployment is complete and user has verified, use attempt_completion to return to orchestrator with summary of deployed app.
+  </handoff_instruction>
+</handoff>

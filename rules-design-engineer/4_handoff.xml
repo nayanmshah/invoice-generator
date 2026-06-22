@@ -1,0 +1,10 @@
+<handoff>
+  <output_file>UX/UI implementation</output_file>
+  <next_mode>code</next_mode>
+  <handoff_instruction>
+    When design/UX implementation is complete and user has approved, validate code prerequisites (development-plan.md, architecture.md) are ready to pass — validation before next mode loads. Then use new_task with mode=code and message including:
+    - DEV_PLAN_FILE: development-plan.md
+    - ARCHITECTURE_FILE: architecture.md
+    - Instruction to implement features per development plan
+  </handoff_instruction>
+</handoff>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- .nayan/rules-orchestrator/2_workflows_greenfield.xml -->
+<!-- Reference: .nayan/guidance/architecture-greenfield-structure.md -->
+<pipelines version="1" path="greenfield">
+  <overview>
+    Greenfield pipeline definitions for building a new product from scratch.
+    Use when the user wants to create something new (e.g. /greenfield command).
+    When user provides JIRA ID or SOW (instead of PRD): entry is brainstorm first — orchestrator delegates to brainstorm to deeply understand requirements with user (Q&amp;A/brainstorm), then brainstorm hands off to prd. When idea is already structured and no JIRA/SOW: entry can be prd. Orchestrator selects entry mode based on idea maturity and input type (JIRA/SOW vs PRD vs raw idea).
+    Brainstorm-idea lets users deep dive into the situation and explore better solution ideas before committing to a path.
+    Explicit UI change: When the user explicitly requests a change in UI, use prototype (create/update) → plan (create/update) first before code; use architect (create/update) only when there is API or architecture impact. See .nayan/guidance/pipeline-entry-points.md.
+  </overview>
+
+  <pipeline id="greenfield">
+    <description>New product from scratch. Full SDLC from idea to deployment.</description>
+    <when_to_use>User has an app idea or wants to build a new product. No existing codebase.</when_to_use>
+    <entry description="When user provides JIRA ID or SOW (instead of PRD): always use first to deeply understand requirements with user (Q&amp;A/brainstorm)">brainstorm</entry>
+    <entry description="When idea is raw or unstructured; helps clarify scope and requirements">brainstorm</entry>
+    <entry description="When idea is already structured and no JIRA/SOW; skip brainstorm and go straight to PRD">prd</entry>
+    <diagramSpec>
+      <!-- preArchitecture: N/A — greenfield creates from scratch -->
+      <preArchitecture>null</preArchitecture>
+      <!-- postArchitecture: architect produces C4, ERD, E2E, Integration Map -->
+      <postArchitecture>required</postArchitecture>
+      <!-- flowDiagrams: 2–4 critical flows with sequence diagrams -->
+      <flowDiagrams>required</flowDiagrams>
+    </diagramSpec>
+    <steps>
+      <step description="Optional; skip if idea already structured">brainstorm</step>
+      <step description="Creates initial PRD and refines for MVP scope">prd</step>
+      <step description="Produces architecture (C4, ERD, E2E)">architect</step>
+      <step description="When UI; skip when API-only">prototype</step>
+      <step description="Creates sprint-based development plan">plan</step>
+      <step description="Implements code per plan">code</step>
+      <step description="Code review, QA plan, QA execution, quality gate, code review">qa</step>
+      <step description="MANDATORY — security review">secure</step>
+      <step description="Creates deployment plan and executes deployment">deploy</step>
+    </steps>
+  </pipeline>
+</pipelines>

@@ -1,0 +1,90 @@
+<rule name="sdlc-human-gates">
+  <description>Human-in-the-Loop checkpoints. All modes must enforce these.</description>
+
+  <approver_name>
+    When any sign-off requires Approver Name (PRD, architecture, development plan, QA plan, QA execution, deployment plan, security plan, etc.): Use Nayan logged-in user from environment_details (section "Nayan Logged-in User"). If the user approves for a role or gate, use that name for Approver Name.
+  </approver_name>
+
+  <sign_off_timing>
+    Collect sign-off only after user has approved the artifact content. Do not mark Approved or hand off (new_task) or call attempt_completion until user has given explicit sign-off. Sign-off is the last step before handoff or completion.
+  </sign_off_timing>
+
+  <present_before_consent>
+    CRITICAL: Never ask for consent, satisfaction, or approval before the user has seen the full content. Present the complete deliverable (Jira summary, SOW content, PRD, architecture, etc.) to the user first. Only after the user has seen it, ask for satisfaction or approval. Wrong: "Are you satisfied with me presenting this?" (user has not seen it). Correct: Present full content, then "Are you satisfied with this?" See context-input-handling.md and end-interaction-satisfaction-check.md.
+  </present_before_consent>
+
+  <universal_consent>
+    Before taking any action:
+    1. Ask clarifying questions to fully understand the user's requirements and intent.
+    2. Present your understanding and proposed plan to the user (user must see the full content first; never ask for approval before presenting).
+    3. Wait for explicit user approval before proceeding with any changes or actions.
+  </universal_consent>
+
+  <prerequisite_validation>
+    Before delegating to any mode, the delegator must validate that the next mode's prerequisites are present per sdlc_prerequisites rule. Validation happens at delegation time — before the next mode loads and before its skills load. If missing, delegate to the mode that produces the missing artifact instead.
+  </prerequisite_validation>
+
+  <planning_gates>
+    <gate name="PRD sign-off" who="Product owner / user" enforced="prd">MANDATORY: Collect sign-off (Which role? Approver Name, Date) only after user has approved PRD content. Sign-off is the last step before handoff to architect. Ask "Which role are you? (PM, Engineering Lead, or Design)" before filling any Sign-Off. Do NOT assume or default to PM. One user = one role. Creator approves for their role only; other roles stay Pending. Share PRD with Engineering Lead and Design for their approvals. Each role requires a different approver. Present PRD; wait for "PRD approved" before handoff to architect. PRD Sign-Off table (Section 1) must have all three roles (PM, Engineering Lead, Design) with Status = "Approved", Approver Name, and Sign-Off Date filled for each. Handoff only when all three Approved. Do not mark Approved or hand off (new_task) or call attempt_completion until user has given explicit sign-off. When sharing PRD with another for sign-off: use manual hand-off (share task, direct recipient to PRD approval) or Slack/Gmail integration. See prd-sharing-sign-off.md. Do NOT handoff if Sign-Off is Pending, Needs Revision, or missing Name/Date.</gate>
+    <gate name="Architect input readiness" who="User / orchestrator" enforced="prd (greenfield), orchestrator (brownfield A)">Greenfield: Confirm refined-prd has Sign-Off all roles Approved, Use Cases, Entities, Domain Glossary, Non-Functional Expectations before delegating to architect. Brownfield A: Confirm condensed scope has feature description, integration points; architect has architecture.md and codebase. See plan_input_requirements rule.</gate>
+    <gate name="Architecture sign-off" who="Tech lead / user" enforced="architect">HITL at decision points: tech stack, architectural pattern, key modules; present full architecture; confirm "Does this fully address all requirements?"; wait for explicit sign-off before handoff. Do not mark Approved or hand off (new_task) or call attempt_completion until user has given explicit sign-off.</gate>
+    <gate name="UX prototype sign-off" who="User / design" enforced="prototype">Present prototypes; wait for explicit approval before handoff to plan (dev-plan phase). Once approved, the prototype is the authoritative source for UI design and final look-and-feel.</gate>
+    <gate name="Development plan sign-off" who="User / team" enforced="plan">Present plan; wait for explicit sign-off before handoff to code. Do not mark Approved or hand off (new_task) or call attempt_completion until user has given explicit sign-off.</gate>
+    <gate name="Code review (first pass)" who="User / reviewer" enforced="qa">After code: present review; wait for approval before QA plan phase</gate>
+    <gate name="QA plan sign-off" who="User / QA" enforced="qa">Present QA plan; wait for approval before QA execution phase</gate>
+    <gate name="QA execution sign-off" who="User / QA" enforced="qa">Present QA results; wait for approval before quality gate phase</gate>
+    <gate name="Code review (second pass)" who="User / reviewer" enforced="qa">After quality gate: present final review; wait for approval before handoff to secure</gate>
+    <gate name="Deployment plan sign-off" who="User / ops" enforced="deploy">Present deployment plan; wait for approval before deployment execution</gate>
+    <gate name="User-provided inputs" who="User" enforced="plan, code">Plan collects repo URL (single repo) or REPO_FRONTEND + REPO_BACKEND (Decoupled with frontend/backend) or REPO_DIRS + per-repo URLs (generic multi-repo with project-specific names), DB URL, env vars, API keys at development plan sign-off; passes to Code in handoff. Code uses from handoff; asks only for missing values. Deployment target is confirmed by deploy mode. Never assume or hardcode. See decoupled-fullstack-repo-strategies.md.</gate>
+  </planning_gates>
+
+  <implementation_gates>
+    <gate name="Sprint task verification" who="Developer / user" enforced="code">After each task: verify on local env; "Please verify [X] works locally"; wait for explicit user confirmation before next task</gate>
+    <gate name="Tests and code coverage" who="Developer / user" enforced="code">Each sprint: unit tests, integration tests for new code; run coverage; ensure new code covered. "Please verify tests pass and coverage is reported." — wait for user consent before commit</gate>
+    <gate name="Tech stack integration" who="User" enforced="code">"Please verify end-to-end flow: [describe flow]. All integration points work." — wait for explicit user confirmation before commit</gate>
+    <gate name="Local testing verification and consent" who="User" enforced="code">Nayan launches backend and frontend (runs in background), states exposed URLs, updates README with manual launch instructions. Nayan validates first (tests, health endpoints, key sprint endpoints); fix failures. Only when Nayan's validation passes — ask user to verify at exposed URLs: "Please verify at [Frontend URL] and [Backend URL]. All sprint functionality verified locally? Tests pass? Coverage reported? End-to-end flow confirmed?" — Wait for user to say "yes" or "confirmed" before commit. Do not proceed without consent.</gate>
+    <gate name="Sprint completion" who="User" enforced="code">Final gate before commit/PR: user must explicitly confirm all verification items above. No commit without user consent.</gate>
+    <note>Per-sprint environment: During each sprint, verify and test on local environment only. Do not deploy to cloud until all sprints are complete.</note>
+  </implementation_gates>
+
+  <code_quality_gates>
+    <gate name="Code quality gate (SonarQube)" who="Developer / user" enforced="qa">MANDATORY — no skip greenfield and brownfield. QA runs quality gate phase. Run SonarQube (or SonarCloud) + lint; fallback: lint + tests + coverage if SonarQube not configured. Produce code-review.md. PASS → secure; FAIL → code for remediation. See code_quality_security_gates rule.</gate>
+    <gate name="Code quality gate (per-sprint)" who="Developer / CI" enforced="code">Lint, tests, coverage must pass before commit. Fix failures before PR.</gate>
+    <gate name="Security review" who="Developer / user" enforced="secure">MANDATORY — no skip greenfield and brownfield. Must run and pass. Greenfield: npm/pip audit. Brownfield: Veracode Pipeline Scanner required + OWASP Top 10 review. Produce security-review.md. Critical/High must be resolved before deployment. See code_quality_security_gates rule.</gate>
+    <gate name="Security scan (per-sprint)" who="Developer / CI" enforced="code">When repo has changes: run npm audit / pnpm audit / pip audit (or project tool). Fix critical/high vulnerabilities before PR.</gate>
+    <gate name="PR per sprint" who="User / reviewer" enforced="code">Create PR after each sprint. Human reviewer must approve before merge.</gate>
+    <gate name="PR creation" who="User" enforced="code">Create PR with accomplishments, testing instructions, coverage summary; PR requires reviewer approval (external to Nayan)</gate>
+    <gate name="PR merge approval" who="Reviewer (human)">Human merges PR in GitHub/GitLab; Nayan does not auto-merge</gate>
+  </code_quality_gates>
+
+  <deployment_gates>
+    <gate name="Per-sprint env" enforced="code">Local only during sprints: run and verify on local dev environment</gate>
+    <gate name="Deployment plan sign-off" who="User / ops" enforced="deploy">Present deployment plan; wait for approval before deployment execution</gate>
+    <gate name="Deployment sprint" who="User" enforced="deploy">Dedicated phase after all sprints. HITL at each step: pre-deploy (code quality, security scan), deployment target confirmation, pre-deploy approval, deploy, post-deploy verification.</gate>
+    <gate name="Cloud deploy timing" who="User" enforced="deploy">Cloud deploy only after all sprints finished; never deploy to cloud mid-pipeline</gate>
+    <gate name="Pre-deploy code quality and security" who="User / devops" enforced="deploy">Code quality gate (SonarQube) and security review (Veracode for brownfield) must pass before deploy. Lint, tests, coverage. User confirms or CI reports green.</gate>
+    <gate name="Deployment target confirmation" who="User" enforced="code, deploy">"Where should this be deployed?" — never assume</gate>
+    <gate name="Pre-deploy approval" who="User / ops" enforced="deploy">"Confirm deployment target and credentials"; wait for explicit approval before deploy</gate>
+    <gate name="Post-deploy verification" who="User" enforced="code, deploy">"Please confirm the deployed version works on [URLs]" — wait for user confirmation</gate>
+  </deployment_gates>
+
+  <issue_debug_gates>
+    <gate name="Issue scope confirmation" who="User" enforced="code">Present issue details to user first; then confirm before implementing. Never ask for confirmation before user has seen the issue. (issue-resolution-workflow, pr-resolution-workflow)</gate>
+    <gate name="Diagnosis confirmation" who="User" enforced="code">Present diagnosis to user first; then "Confirm diagnosis before applying fix". Never ask for confirmation before user has seen the diagnosis. (brownfield-fix-bug; systematic-debugging)</gate>
+  </issue_debug_gates>
+
+  <end_interaction_satisfaction_check>
+    <rule>Before ending any interaction with attempt_completion, run a satisfaction confirmation step. PRESENT-FIRST: Present the complete deliverable to the user (full summary, details, artifact) BEFORE asking for satisfaction. Never ask "Are you satisfied with me presenting this?" before the user has seen the content. After user has seen the full result, call ask_followup_question with options "Yes, satisfied" and "Not yet, I want more updates". If not satisfied, continue working and do not call attempt_completion; present updates, then run the check again. If satisfied, provide final summary via attempt_completion. Exceptions: greetings (no attempt_completion); delegation — use new_task, NOT attempt_completion. See end-interaction-satisfaction-check.md.</rule>
+  </end_interaction_satisfaction_check>
+
+  <out_of_scope_handoff>
+    <owner>orchestrator</owner>
+    <rule>Nayan is focused on greenfield and brownfield product development. Greetings (Hi, Hello, Thanks): handle directly — greet warmly and redirect to /greenfield or /brownfield. Do NOT hand off for greetings. For greetings only: do NOT load skills, do NOT use attempt_completion (keep task open for user to describe their need), do NOT apply rules — respond with a regular message. General non-product (e.g. "how to make tea") or unrelated requests (poems, homework): reject in the same chat — do NOT create new_task. Respond with a polite decline and redirect. Only create new_task for in-scope requests (greenfield, brownfield, or software questions). See out-of-scope-handling.md.</rule>
+  </out_of_scope_handoff>
+
+  <explicit_non_auto_behavior>
+    <item>PR merge: Nayan creates the PR. A human reviewer approves and merges in GitHub/GitLab. Do not merge the PR yourself; the user or team reviewer will merge after approval.</item>
+    <item>Per-sprint verification: During each sprint, verify and test on local environment only. Run locally; user must confirm functionality locally. Do not commit without user consent. Do not deploy to cloud until all sprints are complete.</item>
+    <item>Cloud deployment: Only after all sprints are finished, deploy to cloud. Nayan prepares deployment. Human approves the actual deploy. Deploy to cloud only after all sprints complete. Confirm deployment target and get explicit approval before deploying.</item>
+  </explicit_non_auto_behavior>
+</rule>

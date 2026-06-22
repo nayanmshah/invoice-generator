@@ -1,0 +1,24 @@
+{
+  "name": "nayan-sdlc",
+  "owner": {
+    "name": "Nayan"
+  },
+  "metadata": {
+    "description": "Nayan SDLC plugins — strategic 8-step pipeline for greenfield and brownfield software development.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "nayan",
+      "source": "./",
+      "description": "Nayan SDLC - Strategic workflow orchestrator with specialized agents for brainstorming, PRD, architecture, planning, prototyping, coding, QA, security, and deployment.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Nayan"
+      },
+      "keywords": ["sdlc", "orchestrator", "workflow", "greenfield", "brownfield", "agents"],
+      "category": "workflow",
+      "strict": false
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+<rule name="sdlc-prerequisites">
+  <description>Prerequisite validation before mode loads — at delegation time, not after the mode has started.</description>
+
+  <validation_rule>
+    <step>Before delegating to mode X: Check mode X's prerequisites per the table below.</step>
+    <step>If missing: Do NOT delegate to mode X. Delegate to the mode that produces the missing artifact instead. Include instruction to hand off to mode X when done.</step>
+    <step>If present: Delegate to mode X with all required artifacts in the message.</step>
+    <orchestrator_entry>When user provides JIRA ID or SOW (instead of a full PRD) and the chosen pipeline is greenfield, brownfield-extend, brownfield-add-feature, or brownfield-migrate: delegate to brainstorm first. Do NOT delegate directly to prd or architect. Brainstorm fetches context, presents it, deeply understands requirements with the user (Q&amp;A/brainstorm), then hands off to prd or architect per pipeline. See .nayan/guidance/context-input-handling.md and .nayan/guidance/pipeline-entry-points.md.</orchestrator_entry>
+    <note>Skills and mode logic load when the mode is activated. Prerequisite validation must run before that — so the mode only ever receives tasks when its inputs are ready.</note>
+  </validation_rule>
+
+  <direct_mode_entry>
+    <rule>When user enters this mode directly (not via workflow handoff), run expertise check on every message (per .nayan/guidance/expertise-handoff.md); if the user or Nayan asks something outside mode expertise, hand off. Then run prerequisite check before any mode work.</rule>
+    <rule>If prerequisites are missing: Use new_task to redirect to the mode that produces them. Do NOT proceed with mode work.</rule>
+    <rule>If prerequisites are present: Proceed normally.</rule>
+  </direct_mode_entry>
+
+  <prerequisites>
+    <mode name="brainstorm">
+      <prereq required="yes">User idea or draft, JIRA ID, SOW, or exploration goal — Entry mode; ask user. When user provides JIRA or SOW (instead of PRD), orchestrator delegates to brainstorm first for greenfield and brownfield (extend, add-feature, migrate). See .nayan/guidance/context-input-handling.md.</prereq>
+    </mode>
+    <mode name="prd">
+      <prereq required="yes">User idea or draft (initial phase) — Entry mode; ask user</prereq>
+      <prereq greenfield="yes" condition="input-maturity">User idea must be structured (problem statement, users, key capabilities) OR from brainstorm handoff. If minimal (one-line, vague): delegate to brainstorm first — do NOT delegate to prd. When user provides JIRA or SOW (instead of full PRD): orchestrator delegates to brainstorm first; do NOT delegate to prd until brainstorm has handed off. See .nayan/guidance/expertise-handoff.md and context-input-handling.md.</prereq>
+      <prereq required="yes">initial-prd.md (refinement phase) — From PRD initial phase</prereq>
+    </mode>
+    <mode name="architect">
+      <prereq greenfield="yes" brownfield="no">refined-prd.md with Sign-Off all three roles Approved, Approver Name, and Sign-Off Date filled — Redirect to prd; reject if Pending, Needs Revision, or missing Name/Date</prereq>
+      <prereq greenfield="no" brownfield="yes">condensed scope or migration brief (brownfield extend/migrate) — From orchestrator, or from brainstorm handoff when user provided JIRA/SOW (brainstorm includes aligned scope in message). If missing: ask user or redirect to orchestrator/brainstorm</prereq>
+      <prereq greenfield="no" brownfield="yes">existing architecture.md or legacy system context (for brownfield-migrate) — Ask user for path; cannot extend/migrate without it</prereq>
+      <prereq greenfield="no" brownfield="yes">codebase access — Ask user for repo path</prereq>
+      <note>Architecture phase only. For brownfield-migrate: migration brief or condensed scope; legacy architecture or system context acceptable. See plan_input_requirements rule for full input requirements.</note>
+    </mode>
+    <mode name="plan">
+      <prereq required="yes">architecture.md — Redirect to architect</prereq>
+      <prereq required="yes">refined-prd.md (greenfield) or condensed scope (brownfield) — Redirect to prd or architect</prereq>
+      <prereq required="yes">UX artifacts (when UI, dev-plan phase): one prototype per persona — Redirect to prototype</prereq>
+      <note>Dev-plan phase only. Plan produces development-plan.md from architecture.md and PRD/scope.</note>
+    </mode>
+    <mode name="prototype">
+      <prereq required="yes">architecture.md — Redirect to architect</prereq>
+      <prereq required="yes">refined-prd.md (greenfield) or condensed scope (brownfield) — Redirect to prd or ask user</prereq>
+      <prereq required="yes">CONTEXT (greenfield|brownfield) — Infer from inputs or ask user</prereq>
+      <note>Only when the solution involves UI. Architect delegates to prototype when UI is involved; otherwise to plan (dev-plan phase).</note>
+    </mode>
+    <mode name="code">
+      <prereq required="yes">development-plan.md — Redirect to plan</prereq>
+      <prereq required="yes">architecture.md — Redirect to architect</prereq>
+    </mode>
+    <mode name="qa">
+      <prereq required="yes">development-plan.md (or bug-fix-scope for brownfield-fix-bug or refactor-scope for brownfield-refactor) — Redirect to plan or code</prereq>
+      <prereq required="yes">Codebase — Redirect to code</prereq>
+      <note>QA runs phases: code review (first pass), QA plan creation, QA execution, code quality gate, code review (second pass). For brownfield-fix-bug simple fixes: QA may skip plan/execution phases. tester and sdet are methodologies within qa-planning skill. When using sdet: test-cases.md or manual specs required; ask user for Java/Python.</note>
+    </mode>
+    <mode name="secure">
+      <prereq required="yes">development-plan.md (or bug-fix-scope for brownfield-fix-bug) — Redirect to plan or code</prereq>
+      <prereq required="yes">Codebase — Redirect to code</prereq>
+      <prereq required="yes">Code quality gate passed — Redirect to qa — do not skip</prereq>
+      <note>Brownfield: VERACODE_API_ID, VERACODE_API_KEY, Java 11+ required. See code_quality_security_gates rule. This mode cannot be skipped. Brownfield-fix-bug: no development-plan; bug-fix-scope (or fix context from code/QA) satisfies context prerequisite.</note>
+    </mode>
+    <mode name="deploy">
+      <prereq required="yes">architecture.md — Redirect to architect; optional for brownfield-fix-bug (proceed with codebase + security-review)</prereq>
+      <prereq required="yes">Codebase — Redirect to code</prereq>
+      <prereq required="yes">security-review.md — Redirect to secure — do not skip</prereq>
+      <prereq required="yes">code-review.md — Redirect to qa — do not skip</prereq>
+      <prereq required="yes">All sprints finished (or fix complete for brownfield-fix-bug) — Do not proceed; inform user to complete code first</prereq>
+      <prereq required="yes">Deployment target — Ask user before proceeding</prereq>
+      <note>Secure and qa (quality gate) are mandatory; do not proceed without both passing. Brownfield-fix-bug: no development-plan/sprints; fix completion from code is sufficient.</note>
+    </mode>
+    <mode name="debug (Brownfield C – fix-bug, debug phase)">
+      <prereq required="yes">Bug report / description — Ask user</prereq>
+      <prereq required="yes">Codebase access — Ask user for repo path</prereq>
+    </mode>
+    <mode name="code (Brownfield C – fix-bug entry)">
+      <prereq required="yes">Bug report / description — Ask user; when handed off from debug: diagnosis and fix instructions in message satisfy this</prereq>
+      <prereq required="yes">Codebase access — Ask user for repo path</prereq>
+    </mode>
+    <mode name="qa (Brownfield D – refactor entry)">
+      <prereq required="yes">Refactor request from user (QA produces refactor-scope when entry) — Ask user</prereq>
+      <prereq required="yes">Codebase access — Ask user for repo path</prereq>
+    </mode>
+  </prerequisites>
+
+  <delegator_validation>
+    <row delegator="Orchestrator" validates="brainstorm, prd, architect, plan, prototype, debug, code, qa" check="Entry-mode prerequisites; when JIRA/SOW (not full PRD) and pipeline greenfield or brownfield extend/add-feature/migrate: delegate to brainstorm first" />
+    <row delegator="brainstorm" validates="prd, architect" check="Structured concept or aligned scope in message; pipelineId and CONTEXT included when handing off" />
+    <row delegator="prd" validates="architect" check="refined-prd.md ready" />
+    <row delegator="architect" validates="prototype or plan" check="architecture.md, PRD/scope in message (prototype when UI; plan dev-plan when API-only)" />
+    <row delegator="debug" validates="code" check="diagnosis + fix instructions in message (debug phase hands off to code implementation phase)" />
+    <row delegator="prototype" validates="plan" check="architecture.md, PRD/scope, UX artifacts in message" />
+    <row delegator="plan" validates="code" check="development-plan.md, architecture.md in message" />
+    <row delegator="code" validates="qa" check="development-plan.md (or BUG_FIX_SCOPE when pipeline brownfield-fix-bug), codebase in message" />
+    <row delegator="qa" validates="secure" check="development-plan.md (or BUG_FIX_SCOPE when pipeline brownfield-fix-bug), codebase, code-review.md in message" />
+    <row delegator="secure" validates="deploy" check="architecture.md, codebase, security-review.md, code-review.md in message" />
+    <row delegator="deploy" validates="orchestrator" check="attempt_completion when deployment complete" />
+  </delegator_validation>
+
+  <redirect_template>
+    Prerequisites for [current-mode] are missing. Redirecting to [producing-mode] first.
+    Missing: [list artifacts]
+    [Producing-mode], please produce [artifact(s)]. When complete and user has approved, hand off to [current-mode] with context: [brief context].
+    Original request: [user's original request]
+  </redirect_template>
+</rule>
